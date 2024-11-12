@@ -2,11 +2,17 @@ import ShowModel from "../models/showModel.js";
 import MovieModel from "../models/movieModel.js"; // Ensure movie model is registered
 
 class ShowService {
-  static async getAllShows({ movieId, theatreId }) {
+  static async getAllShows({ movieId, theatreId, date }) {
     try {
       const query = {};
       if (movieId) query.movie = movieId;
       if (theatreId) query.theatre = theatreId;
+      if (date) {
+        const dateStart = new Date(date);
+        const dateEnd = new Date(date);
+        dateEnd.setDate(dateEnd.getDate() + 1);
+        query.startTime = { $gte: dateStart, $lt: dateEnd };
+      }
 
       const shows = await ShowModel.find(query)
         .populate("theatre")

@@ -19,6 +19,6 @@ router.get("/:id", [verifyToken, verifyAdmin], getShowById);
 
 router.patch("/:id", [verifyToken, verifyAdmin], updateShow);
 
-router.delete("/:id",[verifyToken, verifyAdmin], deleteShow);
+router.delete("/:id", [verifyToken, verifyAdmin], deleteShow);
 
 export default router;

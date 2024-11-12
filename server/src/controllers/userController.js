@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import userModel from "../models/userModel.js";
 import dotenv from "dotenv";
+import sendEmail from "../utils/Notifications.js";
 dotenv.config();
 
 export const loginUser = async (req, res) => {
@@ -62,8 +63,6 @@ export const registerUser = async (req, res) => {
 
     // before registering the user we need to check if the user is already present
     const existingUser = await userModel.findOne({ email });
-
-    console.log(existingUser);
 
     if (existingUser) {
       const message =
@@ -132,20 +131,25 @@ export const forgotPassword = async (req, res) => {
 
     await user.save();
 
-    // send the OTP to the user email
-    const mailOptions = {
+    let mailOptions = {
       from: process.env.EMAIL,
       to: email,
       subject: "Password Reset",
+      html: `<h3>Your OTP to reset the password is ${otp}</h3>`,
       text: `Your OTP to reset the password is ${otp}`,
     };
 
-    // send the email
-    await UserService.sendEmail(mailOptions);
+    // pass the email, subject,html, text to the sendEmail function
+    await sendEmail(
+      [user.email],
+      mailOptions.subject,
+      mailOptions.html,
+      mailOptions.text
+    );
 
     res.status(200).json({
       success: true,
-      message: "Password reset link sent to your email",
+      message: `Password reset link sent to your email : ${otp}`,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -154,19 +158,22 @@ export const forgotPassword = async (req, res) => {
 
 export const resetPassword = async (req, res) => {
   try {
-    const { email, otp, password } = req.body;
+    const { otp, password } = req.body;
 
-    if (!email || !otp || !password) {
-      return res.status(400).json({ message: "Missing required fields" });
+    if (!otp || !password) {
+      return res.status(401).json({ message: "Missing required fields" });
     }
+    console.log(`req.body`, req.body);
 
-    const user = await userModel.findOne({ email });
+    const user = await userModel.findOne({ otp: otp });
+
+    console.log(`user`, user);
 
     if (!user) {
-      return res.status(400).json({ message: "User not found" });
+      return res.status(400).json({ message: "OTP is incorrect" });
     }
 
-    if (user.otp !== otp) {
+    if (user.otp !== parseInt(otp)) {
       return res.status(400).json({ message: "Invalid OTP" });
     }
 

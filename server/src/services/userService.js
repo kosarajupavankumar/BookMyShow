@@ -32,17 +32,6 @@ class UserService {
     }
   }
 
-  static async sendEmail(emailOptions) {
-    try {
-      // send email logic
-
-      
-      console.log(`emailOptions`, emailOptions);
-      return "Email sent successfully";
-    } catch (error) {
-      throw new Error("Error sending email: " + error.message);
-    }
-  }
 }
 
 export default UserService;
