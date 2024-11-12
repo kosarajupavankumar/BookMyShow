@@ -3,7 +3,7 @@ import axios from "axios";
 export const axiosInstance = axios.create({
   headers: {
     "Content-Type": "application/json",
-    "x-access-token": `Bearer ${localStorage.getItem("token")}`,
+    "x-access-token": `Bearer ${localStorage.getItem("accessToken")}`,
   },
 });
 
@@ -12,7 +12,6 @@ const backendEndPoint =
 
 export const registerUser = async (userObj) => {
   try {
-    console.log(`1111 userObj`, JSON.stringify(userObj));
     if (
       !userObj.name ||
       !userObj.email ||
@@ -21,8 +20,6 @@ export const registerUser = async (userObj) => {
     ) {
       throw new Error("Missing required user information");
     }
-
-    console.log(`2222 userObj`, JSON.stringify(userObj));
 
     const response = await axiosInstance.post(
       `${backendEndPoint}/users/register`,
@@ -34,8 +31,6 @@ export const registerUser = async (userObj) => {
         role: "seller",
       }
     );
-
-    console.log(`3333 response`, response);
 
     if (response.status >= 200 && response.status < 300) {
       return response.data;
@@ -56,7 +51,6 @@ export const registerUser = async (userObj) => {
 
 export const LoginUser = async (value) => {
   try {
-    console.log(`value`, value);
     const response = await axiosInstance.post(
       `${backendEndPoint}/users/login`,
       {
@@ -64,9 +58,6 @@ export const LoginUser = async (value) => {
         password: value.password,
       }
     );
-
-    console.log(`response`, response);
-
     return response;
   } catch (err) {
     return err.response;
@@ -76,7 +67,7 @@ export const LoginUser = async (value) => {
 export const ForgetPassword = async (value) => {
   try {
     const response = await axiosInstance.patch(
-      `${backendEndPoint}/forgetPassword`,
+      `${backendEndPoint}/users/forgotPassword`,
       {
         email: value.email,
       }
@@ -91,7 +82,7 @@ export const ForgetPassword = async (value) => {
 export const ResetPassword = async (value) => {
   try {
     const response = await axiosInstance.patch(
-      `${backendEndPoint}/resetPassword`,
+      `${backendEndPoint}/users/resetpassword`,
       {
         otp: value.otp,
         password: value.password,

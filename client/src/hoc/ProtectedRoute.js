@@ -6,7 +6,7 @@ function ProtectedRoute({ children }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const isTokenAvailable = localStorage.getItem("token");
+    const isTokenAvailable = localStorage.getItem("accessToken");
 
     //make an API call using token to backend to get the user Details
 

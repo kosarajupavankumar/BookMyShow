@@ -10,7 +10,8 @@ const Login = () => {
       const response = await LoginUser(values);
       if (response.status === 200) {
         message.success("Login Successful");
-        localStorage.setItem("token", response.data.accessToken);
+        console.log(`response`, response.data.data.accessToken);
+        localStorage.setItem("accessToken", response.data.data.accessToken);
         navigate("/");
       } else {
         message.error(response.data.message || "Login failed");
@@ -32,12 +33,12 @@ const Login = () => {
           <section className="right-section">
             <Form onFinish={onFinish} layout="vertical">
               <Form.Item
-                label="Email"
+                label="email"
                 name="email"
                 className="d-block"
                 rules={[{ required: true, message: "Email is required" }]}
               >
-                <Input type="email" placeholder="Enter your Email" />
+                <Input type="email" placeholder="Enter your EmailId" />
               </Form.Item>
 
               <Form.Item
