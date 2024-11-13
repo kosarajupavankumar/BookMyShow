@@ -14,7 +14,7 @@ const handleError = (err) => {
 export const makePayment = async (payload) => {
   try {
     const response = await axiosInstance.post(
-      `${backendEndPoint}/payment`,
+      `${backendEndPoint}/bookings/payment`,
       payload
     );
     return handleResponse(response);
