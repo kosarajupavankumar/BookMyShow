@@ -27,7 +27,9 @@ class ShowService {
 
   static async getShowById(showId) {
     try {
-      const show = await ShowModel.findById(showId);
+      const show = await ShowModel.findById(showId)
+        .populate("theatre")
+        .populate("movie");
       return show;
     } catch (error) {
       throw new Error("Error getting show: " + error.message);

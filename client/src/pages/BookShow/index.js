@@ -9,14 +9,28 @@ import StripeCheckout from "react-stripe-checkout";
 
 const BookShowPage = () => {
   const [show, setShow] = useState(null);
-  console.log(`show`, JSON.stringify(show));
   const [selectedSeats, setSelectedSeats] = useState([]);
-
   const params = useParams();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await getShowViaId(params.id);
+        if (response.success) {
+          setShow(response.data);
+        } else {
+          message.error("Unable to fetch show details");
+        }
+      } catch (err) {
+        message.error("An error occurred while fetching show details");
+      }
+    };
+
+    fetchData();
+  }, [params.id]);
 
   const onToken = async (token) => {
     const amount = selectedSeats.length * show.ticketPrice;
-
     const response = await makePayment({ token, amount });
 
     if (response.success) {
@@ -39,129 +53,70 @@ const BookShowPage = () => {
         message.success(
           `Booking created Successfully with id: ${response.data._id}`
         );
-
-        setInterval(() => {
+        setTimeout(() => {
           window.location.href = "/";
         }, 2000);
       }
-    } catch (err) {}
+    } catch (err) {
+      message.error("An error occurred while booking the show");
+    }
   };
 
-  const getSeats = () => {
-    let columns = 12;
-    let totalSeats = 120;
-
-    let rows = totalSeats / columns; //10
-
-    let allRows = [];
-
-    for (let i = 0; i < rows; i++) {
-      allRows.push(i);
+  const handleSeatSelect = (seatNumber) => {
+    if (show.bookedSeats.includes(seatNumber)) {
+      return;
     }
 
-    let allColumns = [];
-
-    for (let i = 0; i < columns; i++) {
-      allColumns.push(i);
-    }
-
-    function handleSeatSelect(seatNumber) {
-      if (show.bookedSeats.includes(seatNumber)) {
-        return;
-      }
-
-      if (selectedSeats.includes(seatNumber)) {
-        const updatedSelectedSeats = selectedSeats.filter(
-          (seat) => seat !== seatNumber
-        );
-        setSelectedSeats(updatedSelectedSeats);
-        return;
-      }
-
+    if (selectedSeats.includes(seatNumber)) {
+      setSelectedSeats(selectedSeats.filter((seat) => seat !== seatNumber));
+    } else {
       setSelectedSeats([...selectedSeats, seatNumber]);
     }
+  };
+
+  const renderSeats = () => {
+    const columns = 12;
+    const totalSeats = 120;
+    const rows = totalSeats / columns;
 
     return (
       <div className="d-flex flex-column align-items-center">
-        <div>
-          {allRows.map((row) => {
-            return (
-              <div>
-                {allColumns.map((col) => {
-                  let seatNumber = row * columns + col + 1;
+        {Array.from({ length: rows }).map((_, rowIndex) => (
+          <div key={rowIndex}>
+            {Array.from({ length: columns }).map((_, colIndex) => {
+              const seatNumber = rowIndex * columns + colIndex + 1;
+              let seatClass = "seat-btn";
 
-                  let seatClass = "seat-btn";
+              if (show.bookedSeats.includes(seatNumber)) {
+                seatClass += " booked";
+              }
 
-                  if (show.bookedSeats.includes(seatNumber)) {
-                    seatClass += " booked";
-                  }
+              if (selectedSeats.includes(seatNumber)) {
+                seatClass += " selected";
+              }
 
-                  if (selectedSeats.includes(seatNumber)) {
-                    seatClass += " selected";
-                  }
-
-                  //calculation for first iteration
-
-                  //row = 0 , col=0  : 0 * 12 + 0 + 1  = 1
-
-                  //row =2  , col = 5,  2*12 +  5 + 1= 30
-
-                  return (
-                    <button
-                      onClick={() => handleSeatSelect(seatNumber)}
-                      className={seatClass}
-                    >
-                      {" "}
-                      {seatNumber}{" "}
-                    </button>
-                  );
-                })}
-                <br />
-              </div>
-            );
-          })}
-        </div>
-
+              return (
+                <button
+                  key={seatNumber}
+                  onClick={() => handleSeatSelect(seatNumber)}
+                  className={seatClass}
+                >
+                  {seatNumber}
+                </button>
+              );
+            })}
+            <br />
+          </div>
+        ))}
         <div className="cardBottomPrice">
           <div className="flex-1">
-            Selected Seats : <span> {selectedSeats.join(", ")} </span>
+            Selected Seats: <span>{selectedSeats.join(", ")}</span>
           </div>
-
-          <div>Total Price : {selectedSeats.length * show.ticketPrice}</div>
+          <div>Total Price: {selectedSeats.length * show.ticketPrice}</div>
         </div>
       </div>
     );
   };
-
-  const getData = async () => {
-    try {
-      const response = await getShowViaId(params.id);
-      console.log(response);
-
-      if (response.success) {
-        setShow(response.data);
-      } else {
-        message.error("Unable to fetch show details");
-      }
-    } catch (err) {}
-  };
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await getShowViaId(params.id);
-        console.log(response);
-
-        if (response.success) {
-          setShow(response.data);
-        } else {
-          message.error("Unable to fetch show details");
-        }
-      } catch (err) {}
-    };
-
-    fetchData();
-  }, [params.id]);
 
   return (
     <div>
@@ -172,38 +127,28 @@ const BookShowPage = () => {
               <Card
                 title={
                   <div>
-                    <h1> {show.movie.title} </h1>
+                    <h1>{show.movie.title}</h1>
                     <p>
-                      {" "}
-                      Theatre : {show.theatre.name}, {show.theatre.address}{" "}
+                      Theatre: {show.theatre.name}, {show.theatre.address}
                     </p>
                   </div>
                 }
                 extra={
                   <div className="py-3">
+                    <h3>Show Name: {show.name}</h3>
                     <h3>
-                      <span> Show Name : </span> {show.name}
+                      Date and Time: {moment(show.date).format("MMM Do YYYY")}{" "}
+                      {show.time}
                     </h3>
-
+                    <h3>Ticket Price: {show.ticketPrice}</h3>
                     <h3>
-                      <span> Date and Time : </span>
-                      {moment(show.date).format("MMM Do YYYY")} {show.time}
-                    </h3>
-
-                    <h3>
-                      <span> Ticket Price : </span> {show.ticketPrice}
-                    </h3>
-
-                    <h3>
-                      <span> Total Seats : </span> {show.totalSeats}
-                      <span> | Available Seats : </span>{" "}
+                      Total Seats: {show.totalSeats} | Available Seats:{" "}
                       {show.totalSeats - show.bookedSeats.length}
                     </h3>
                   </div>
                 }
               >
-                {getSeats()}
-
+                {renderSeats()}
                 {selectedSeats.length > 0 && (
                   <StripeCheckout
                     stripeKey="pk_test_51Pk5XWKp25HZoc30bcTmozGCabcS6KEKI7isIVopkB8TmzislgHqHIY3fzvxstSTY6bSN6LhQeW3z7oYpkc242Sd008g8PAKBI"

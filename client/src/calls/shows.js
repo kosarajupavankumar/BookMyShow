@@ -6,9 +6,12 @@ export const getAllTheatesByMovie = async (movieId, date) => {
   try {
     console.log(`date`, JSON.stringify(date));
 
-    const response = await axiosInstance.get(
-      `${backendEndPoint}/shows?movieId=${movieId}&date=${date}`
-    );
+    const response = await axiosInstance.get(`${backendEndPoint}/shows`, {
+      params: {
+        movieId: movieId,
+        date: date,
+      },
+    });
     console.log(`response getAllTheatresByMovie`, JSON.stringify(response));
     return response.data;
   } catch (err) {
